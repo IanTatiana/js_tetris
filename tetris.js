@@ -2,11 +2,11 @@ var c = document.getElementById("canvas_id")
 var ctx = c.getContext("2d")
 
 var screen_width = 10, screen_height = 20;
-var playing_field = new Array(screen_width)
+var playing_field = new Array()
 var size_el = 20
 
 for (var i = 0; i < screen_width; i++){
-	playing_field[i] = new Array(screen_height);
+	playing_field[i] = new Array();
 	for (var j = 0; j < screen_height; j++){
 		playing_field[i][j] = 0;  //  Initialization;
 	}
@@ -40,7 +40,7 @@ tetromino[1] = {
 
 tetromino[2] = {
 	name:  "S",
-	color: "#33CC00",
+	color: "magenta",
 	cnt:   2,
 	forms: [ [ [ 0, 0, 0, 0 ],
 		   [ 0, 1, 1, 0 ],
@@ -54,7 +54,7 @@ tetromino[2] = {
 
 tetromino[3] = {
 	name:  "Z",
-	color: "#6633CC",
+	color: "lime",
 	cnt:   2,
 	forms: [ [ [ 0, 0, 0, 0 ],
 		   [ 1, 1, 0, 0 ],
@@ -68,7 +68,7 @@ tetromino[3] = {
 
 tetromino[4] = {
 	name:  "T",
-	color: "#3399FF",
+	color: "cyan",
 	cnt:   4,
 	forms: [ [ [ 0, 1, 0, 0 ],
 		   [ 1, 1, 1, 0 ],
@@ -92,7 +92,7 @@ tetromino[4] = {
 
 tetromino[5] = {
 	name:  "L",
-	color: "#FF9900",
+	color: "orange",
 	cnt:   4,
 	forms: [ [ [ 0, 0, 0, 0 ],
 		   [ 1, 1, 1, 0 ],
@@ -116,7 +116,7 @@ tetromino[5] = {
 
 tetromino[6] = {
 	name:  "J",
-	color: "#003399",
+	color: "blue",
 	cnt:   4,
 	forms: [ [ [ 1, 0, 0, 0 ],
 		   [ 1, 1, 1, 0 ],
@@ -141,17 +141,24 @@ tetromino[6] = {
 //--------------------------------------------
 
 var x = 3, y = 0, type = 0, idx = Math.floor(Math.random() * 7);
-var cur_figure = tetromino[idx];
+var cur_figure = tetromino[idx], score = 0;
 
 function DrawBackground(){
 	ctx.clearRect(0, 0, screen_width, screen_height);
+	ctx.fillStyle = "#333366";
+	ctx.fillRect(0, 0, screen_height*size_el, screen_height*size_el);
+
+	ctx.font = "30px Arial";
+	ctx.strokeText("Score", screen_width*size_el + 50, 50);
+	ctx.strokeText(score, screen_width*size_el + 50, 100);
+
 	for (var i = 0; i < screen_width; i++){
 		for (var j = 0; j < screen_height; j++){
 			if (playing_field[i][j]){
 				ctx.fillStyle = tetromino[playing_field[i][j] - 2].color;
 			} else {
 				if ((i + j) % 2 == 1)
-					ctx.fillStyle = "#000";
+					ctx.fillStyle = "#666";
 				else
 					ctx.fillStyle = "#333";
 			}
@@ -256,19 +263,67 @@ function PutFigure(){
 		}
 	}
 }
+var lines = [ 0, 0, 0, 0 ], lines_cnt = 0;
+function CheckScore(){
+	var cnt = 0;
+	for (var i = 0; i < 4; i++){
+		cnt = 0;
+		for(var j = 0; j < screen_width; j++){
+			if (playing_field[j][i + y] > 1){
+				cnt++;
+			}
+		}
+		if (cnt == screen_width){
+			lines_cnt++;
+			lines[i] = 1;
+		}
+	}
+	switch (lines_cnt){
+		case 1: score += 100; break;
+		case 2: score += 300; break;
+		case 3: score += 700; break;
+		case 4: score += 1500; break;
+	}
+}
+
+function DeleteLines(){
+	for (var i = 0; i < 4; i++){
+		if (lines[i]){
+			for (var j = 0; j < screen_width; j++){
+				playing_field[j][i + y] = 0;
+			}
+		}
+	}
+}
+
+function DropBuilding(){
+	for (var i = 0; i < 4; i++){
+		if (lines[i]){
+			for (var j = y + i; j > 0; j--){
+				for (var k = 0; k < screen_width; k++){
+					playing_field[k][j] = playing_field[k][j - 1];
+				}
+			}
+		}
+	}
+}
 
 function GoDown(){
 	if (!IntersectionBottom(y + 1, type) && !Intersection(x, y + 1, type))
 		y++
 	else {
 		PutFigure();
+		CheckScore();
+		DeleteLines();
+		DropBuilding();
 		idx = Math.floor(Math.random() * 7);
-		type = 0; x = 3; y = 0;
+		type = 0; x = 3; y = 0; lines = [ 0, 0, 0, 0 ]; lines_cnt = 0;
 		cur_figure = tetromino[idx];
 	}
 	DrawBackground();
 	DrawFigure(type);
 }
+
 //-------------------------------------------------------------------
 DrawBackground();
 DrawFigure(type);
