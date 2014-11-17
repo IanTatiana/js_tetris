@@ -140,27 +140,48 @@ tetromino[6] = {
 
 //--------------------------------------------
 
-var x = 3, y = 0, type = 0, idx = Math.floor(Math.random() * 7);
+var x = 3, y = 0, type = 0, next = Math.floor(Math.random() * 7), idx = Math.floor(Math.random() * 7);
 var cur_figure = tetromino[idx], score = 0;
+
+function DrawNextFigure(k, kx, ky, id){
+	ctx.fillStyle = tetromino[id].color;
+	for (var i = 0; i < 4; i++)
+		for (var j = 0; j < 4; j++)
+			if (tetromino[id].forms[k][i][j]){
+				ctx.fillRect((kx + j)*size_el, (ky + i)*size_el, size_el, size_el);
+				ctx.strokeRect((kx + j)*size_el, (ky + i)*size_el, size_el, size_el);
+			}
+}
 
 function DrawBackground(){
 	ctx.clearRect(0, 0, screen_width, screen_height);
 	ctx.fillStyle = "#333366";
-	ctx.fillRect(0, 0, screen_height*size_el, screen_height*size_el);
+	ctx.fillRect(0, 0, screen_height*size_el - 20, screen_height*size_el);
 
-	ctx.font = "30px Arial";
-	ctx.strokeText("Score", screen_width*size_el + 50, 50);
-	ctx.strokeText(score, screen_width*size_el + 50, 100);
+	ctx.fillStyle = "white";
+	ctx.font = "14px Arial";
+	ctx.fillText("Score", screen_width*size_el + 50, 50);
+	ctx.fillText(score, screen_width*size_el + 50, 70);
+
+	ctx.fillText("Next figure", screen_width*size_el + 50, 5*size_el);
+	DrawNextFigure(0, screen_width + 3, 6, next);
+
+	ctx.font = "20px Arial";
+	ctx.fillStyle = "white";
+	ctx.fillText("TETRIS", screen_width*size_el + 50, 15*size_el);
 
 	for (var i = 0; i < screen_width; i++){
 		for (var j = 0; j < screen_height; j++){
 			if (playing_field[i][j]){
 				ctx.fillStyle = tetromino[playing_field[i][j] - 2].color;
+				ctx.fillRect(i*size_el, j*size_el, size_el, size_el);
+				ctx.strokeRect(i*size_el, j*size_el, size_el, size_el);
+				continue;
 			} else {
 				if ((i + j) % 2 == 1)
-					ctx.fillStyle = "#666";
+					ctx.fillStyle = "#666699";
 				else
-					ctx.fillStyle = "#333";
+					ctx.fillStyle = "#9999CC";
 			}
 			ctx.fillRect(i*size_el, j*size_el, size_el, size_el);
 		}
@@ -223,8 +244,10 @@ function DrawFigure(k){
 	ctx.fillStyle = cur_figure.color;
 	for (var i = 0; i < 4; i++)
 		for (var j = 0; j < 4; j++)
-			if (cur_figure.forms[k][i][j])
+			if (cur_figure.forms[k][i][j]){
 				ctx.fillRect((j + x)*size_el, (i + y)*size_el, size_el, size_el);
+				ctx.strokeRect((j + x)*size_el, (i + y)*size_el, size_el, size_el);
+			}
 }
 
 document.onkeydown = function OnKeyDown(event){
@@ -316,7 +339,8 @@ function GoDown(){
 		CheckScore();
 		DeleteLines();
 		DropBuilding();
-		idx = Math.floor(Math.random() * 7);
+		idx = next;
+		next = Math.floor(Math.random() * 7);
 		type = 0; x = 3; y = 0; lines = [ 0, 0, 0, 0 ]; lines_cnt = 0;
 		cur_figure = tetromino[idx];
 	}
@@ -327,4 +351,4 @@ function GoDown(){
 //-------------------------------------------------------------------
 DrawBackground();
 DrawFigure(type);
-setInterval(GoDown, 1000);
+setInterval(GoDown, 800);
